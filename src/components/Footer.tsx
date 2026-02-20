@@ -43,10 +43,10 @@ const Footer = () => {
           <div>
             <h3 className="font-bold text-base md:text-lg mb-3 md:mb-4">Social</h3>
             <div className="flex flex-col space-y-1 md:space-y-2 text-xs md:text-sm">
-              <a href="#" target="_blank" rel="noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
+              <a href="https://www.instagram.com/tecknowhow_lda" target="_blank" rel="noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
                 Instagram
               </a>
-              <a href="#" target="_blank" rel="noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
+              <a href="https://www.linkedin.com/company/tecknowhow-lda" target="_blank" rel="noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
                 LinkedIn
               </a>
             </div>
