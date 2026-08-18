@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Menu, X } from 'lucide-react';
-import logo from '@/assets/logo.png';
+import logo from '@/assets/Logo TKH 2026 - Registado.png';
 
 const Header = () => {
   const [isVisible, setIsVisible] = useState(true);
@@ -46,7 +46,7 @@ const Header = () => {
       } ${
         isAtTop 
           ? 'bg-transparent py-3 md:py-4' 
-          : 'bg-dark/80 backdrop-blur-md shadow-lg py-2 md:py-2'
+          : 'bg-dark/35 backdrop-blur-xl shadow-md shadow-black/20 border-b border-white/10 py-2 md:py-2'
       }`}
     >
       <div className="container mx-auto px-4 flex items-center justify-between">
@@ -69,7 +69,11 @@ const Header = () => {
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }}
         >
-          <img src={logo} alt="TecKnowHow" className="h-8 md:h-10 lg:h-12" />
+          <img
+            src={logo}
+            alt="TecKnowHow"
+            className="h-8 md:h-10 lg:h-12 w-auto drop-shadow-[0_1px_3px_rgba(0,0,0,0.5)]"
+          />
         </a>
 
         {/* Right Navigation (Desktop) - Alinhado à esquerda do seu bloco */}
