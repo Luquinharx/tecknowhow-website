@@ -4,6 +4,7 @@ import path from "path";
 import { componentTagger } from "lovable-tagger";
 import { handleChat } from "./server/chat-middleware";
 import { handleLeads } from "./server/leads";
+import { handleLogin } from "./server/auth";
 
 // Serve /api/chat em desenvolvimento com o mesmo código do servidor de produção.
 const devApi = (): Plugin => ({
@@ -12,6 +13,7 @@ const devApi = (): Plugin => ({
     server.middlewares.use("/api/chat", (req, res) => void handleChat(req, res));
     // leads: só funciona em dev com DATABASE_URL no .env (ex.: túnel SSH ao Postgres da VM)
     server.middlewares.use("/api/leads", (req, res) => void handleLeads(req, res));
+    server.middlewares.use("/api/admin/login", (req, res) => void handleLogin(req, res));
   },
 });
 
@@ -19,7 +21,7 @@ const devApi = (): Plugin => ({
 export default defineConfig(({ mode }) => {
   // Disponibiliza variáveis sem prefixo VITE_ (ex.: GLM_API_KEY) só no servidor.
   const env = loadEnv(mode, process.cwd(), "");
-  for (const key of ["GLM_API_KEY", "GLM_MODEL", "GLM_BASE_URL", "GLM_REASONING_EFFORT", "DATABASE_URL", "ADMIN_PASSWORD"]) {
+  for (const key of ["GLM_API_KEY", "GLM_MODEL", "GLM_BASE_URL", "GLM_REASONING_EFFORT", "DATABASE_URL", "ADMIN_EMAIL", "ADMIN_PASSWORD_HASH", "ADMIN_SESSION_SECRET"]) {
     if (env[key] && !process.env[key]) process.env[key] = env[key];
   }
 

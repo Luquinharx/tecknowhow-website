@@ -3,6 +3,7 @@
 import http from "node:http";
 import { handleChat } from "./chat-middleware";
 import { handleLeads } from "./leads";
+import { handleLogin } from "./auth";
 import { db, hasDatabase } from "./db";
 import { sendJson } from "./http-utils";
 
@@ -25,6 +26,7 @@ const server = http.createServer(async (req, res) => {
   }
   if (path === "/api/chat") return void handleChat(req, res);
   if (path === "/api/leads") return void handleLeads(req, res);
+  if (path === "/api/admin/login") return void handleLogin(req, res);
   sendJson(res, 404, { error: "Não encontrado." });
 });
 

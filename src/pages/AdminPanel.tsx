@@ -15,39 +15,90 @@ interface Lead {
   createdAt: string;
 }
 
+const SESSION_KEY = 'tkh-admin-session';
+
 const AdminPanel = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(false);
-
   const [error, setError] = useState('');
 
-  // A palavra-passe é verificada no servidor (ADMIN_PASSWORD na VM); aqui só fica em memória.
-  const fetchLeads = async (pass: string) => {
+  const logout = (message = '') => {
+    try {
+      sessionStorage.removeItem(SESSION_KEY);
+    } catch {
+      /* ignora */
+    }
+    setIsAuthenticated(false);
+    setLeads([]);
+    setError(message);
+  };
+
+  // As credenciais são verificadas no servidor; o browser só guarda um token de sessão (12 h).
+  const fetchLeads = async (token: string) => {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch('/api/leads', { headers: { Authorization: `Bearer ${pass}` } });
+      const res = await fetch('/api/leads', { headers: { Authorization: `Bearer ${token}` } });
       const data = await res.json().catch(() => ({}));
+      if (res.status === 401) {
+        logout(data.error || 'Sessão expirada. Entre outra vez.');
+        return;
+      }
       if (!res.ok) {
         setError(data.error || 'Não foi possível carregar os leads.');
-        return false;
+        return;
       }
       setLeads(data.leads);
-      return true;
+      setIsAuthenticated(true);
     } catch (err) {
       console.error('Error fetching leads: ', err);
       setError('Sem ligação ao servidor.');
-      return false;
     } finally {
       setLoading(false);
     }
   };
 
+  // retoma a sessão se a página for recarregada
+  useEffect(() => {
+    try {
+      const token = sessionStorage.getItem(SESSION_KEY);
+      if (token) fetchLeads(token);
+    } catch {
+      /* ignora */
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (await fetchLeads(password)) setIsAuthenticated(true);
+    setLoading(true);
+    setError('');
+    try {
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(data.error || 'Não foi possível entrar.');
+        setLoading(false);
+        return;
+      }
+      setPassword('');
+      try {
+        sessionStorage.setItem(SESSION_KEY, data.token);
+      } catch {
+        /* ignora */
+      }
+      await fetchLeads(data.token);
+    } catch {
+      setError('Sem ligação ao servidor.');
+      setLoading(false);
+    }
   };
 
   if (!isAuthenticated) {
@@ -60,10 +111,20 @@ const AdminPanel = () => {
           <CardContent>
             <form onSubmit={handleLogin} className="space-y-4">
               <Input
+                type="email"
+                placeholder="Email"
+                autoComplete="username"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+              <Input
                 type="password"
                 placeholder="Palavra-passe"
+                autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                required
               />
               {error && <p className="text-sm text-red-500">{error}</p>}
               <Button type="submit" className="w-full" disabled={loading}>{loading ? 'A entrar...' : 'Entrar'}</Button>
@@ -76,7 +137,10 @@ const AdminPanel = () => {
 
   return (
     <div className="container mx-auto py-10">
-      <h1 className="text-3xl font-bold mb-8">Painel de Leads</h1>
+      <div className="flex items-center justify-between mb-8">
+        <h1 className="text-3xl font-bold">Painel de Leads</h1>
+        <Button variant="outline" onClick={() => logout()}>Sair</Button>
+      </div>
       <Card>
         <CardContent className="p-0">
           <Table>

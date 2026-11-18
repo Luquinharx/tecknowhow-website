@@ -1,25 +1,14 @@
 // /api/leads
 //   POST  cria um lead (público, usado pelo chat; ignora telemóvel repetido)
-//   GET   lista os leads (painel de admin; Authorization: Bearer <ADMIN_PASSWORD>)
+//   GET   lista os leads (painel de admin; Authorization: Bearer <token do /api/admin/login>)
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { timingSafeEqual, createHash } from "node:crypto";
 import { db, hasDatabase } from "./db";
+import { isAdmin } from "./auth";
 import { clientIp, createRateLimiter, readBody, sendJson } from "./http-utils";
 
 const createLimited = createRateLimiter(10, 10 * 60 * 1000);
-const loginFailLimited = createRateLimiter(10, 15 * 60 * 1000);
 
 const text = (v: unknown, max: number) => (typeof v === "string" ? v.trim().slice(0, max) : "");
-
-function isAdmin(req: IncomingMessage) {
-  const expected = process.env.ADMIN_PASSWORD;
-  const header = req.headers.authorization || "";
-  if (!expected || !header.startsWith("Bearer ")) return false;
-  // compara hashes de tamanho fixo, em tempo constante
-  const a = createHash("sha256").update(header.slice(7)).digest();
-  const b = createHash("sha256").update(expected).digest();
-  return timingSafeEqual(a, b);
-}
 
 async function createLead(req: IncomingMessage, res: ServerResponse) {
   if (createLimited(clientIp(req))) return sendJson(res, 429, { error: "Demasiados pedidos." });
@@ -64,11 +53,7 @@ async function createLead(req: IncomingMessage, res: ServerResponse) {
 }
 
 async function listLeads(req: IncomingMessage, res: ServerResponse) {
-  const ip = clientIp(req);
-  if (!isAdmin(req)) {
-    if (loginFailLimited(ip)) return sendJson(res, 429, { error: "Demasiadas tentativas. Tente mais tarde." });
-    return sendJson(res, 401, { error: "Palavra-passe incorreta." });
-  }
+  if (!isAdmin(req)) return sendJson(res, 401, { error: "Sessão expirada. Entre outra vez." });
   const pool = await db();
   const { rows } = await pool.query(
     `SELECT id, first_name AS "firstName", phone, interest, service, location, timeline, source,
