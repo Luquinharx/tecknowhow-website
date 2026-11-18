@@ -1,0 +1,9 @@
+[Unit]
+Description=Site TecKnowHow - publica commits novos do main (GitHub)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/tecknowhow-atualizar
+TimeoutStartSec=900

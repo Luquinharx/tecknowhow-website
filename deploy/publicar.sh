@@ -3,8 +3,8 @@
 #
 #   bash deploy/publicar.sh
 #
-# Normalmente nao e preciso: cada push para o main publica sozinho pelo
-# GitHub Actions (.github/workflows/deploy-vm.yml). Isto serve para publicar a
+# Normalmente nao e preciso: a VM verifica o main a cada 2 minutos e publica
+# sozinha os commits novos (deploy/tecknowhow-atualizar.sh). Isto serve para publicar a
 # mao o que esta na pasta, mesmo sem commit.
 set -euo pipefail
 

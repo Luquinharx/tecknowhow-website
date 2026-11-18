@@ -1,0 +1,25 @@
+# Verifica que o site e a API compilam a cada push e pull request.
+#
+# A publicacao NAO e feita aqui: a VM Oracle verifica o main a cada 2 minutos
+# e publica sozinha os commits novos (deploy/tecknowhow-atualizar.sh).
+name: Verificar
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npx tsc --noEmit -p tsconfig.app.json
+      - run: npm run build
+      - run: npm run build:server

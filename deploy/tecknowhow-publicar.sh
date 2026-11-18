@@ -51,7 +51,12 @@ install -o tecknowhow -g tecknowhow -m 644 server-dist/server.cjs /opt/tecknowho
 install -m 644 deploy/tecknowhow.service /etc/systemd/system/tecknowhow.service
 # o proprio script de publicacao tambem se atualiza para a proxima vez
 install -m 755 deploy/tecknowhow-publicar.sh /usr/local/sbin/tecknowhow-publicar
+# publicacao automatica: a VM verifica o main do GitHub a cada 2 minutos
+install -m 755 deploy/tecknowhow-atualizar.sh /usr/local/sbin/tecknowhow-atualizar
+install -m 644 deploy/tecknowhow-atualizar.service /etc/systemd/system/tecknowhow-atualizar.service
+install -m 644 deploy/tecknowhow-atualizar.timer /etc/systemd/system/tecknowhow-atualizar.timer
 systemctl daemon-reload
+systemctl enable --quiet --now tecknowhow-atualizar.timer
 systemctl enable --quiet tecknowhow
 systemctl restart tecknowhow
 
