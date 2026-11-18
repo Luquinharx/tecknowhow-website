@@ -12,6 +12,9 @@ interface Lead {
   lastName: string;
   phone: string;
   interest: string;
+  service?: string;
+  location?: string;
+  timeline?: string;
   createdAt: any;
 }
 
@@ -101,7 +104,14 @@ const AdminPanel = () => {
                   <TableRow key={lead.id}>
                     <TableCell className="font-medium">{lead.firstName}</TableCell>
                     <TableCell>{lead.phone}</TableCell>
-                    <TableCell>{lead.interest}</TableCell>
+                    <TableCell>
+                      {lead.interest}
+                      {(lead.service || lead.location || lead.timeline) && (
+                        <span className="block text-xs text-muted-foreground mt-1">
+                          {[lead.service, lead.location, lead.timeline].filter(Boolean).join(' · ')}
+                        </span>
+                      )}
+                    </TableCell>
                     <TableCell>
                       {lead.createdAt?.toDate ? lead.createdAt.toDate().toLocaleString() : 'N/A'}
                     </TableCell>

@@ -1,0 +1,22 @@
+[Unit]
+Description=Site TecKnowHow - API do assistente (www.tecknowhow.pt/api)
+After=network.target
+
+[Service]
+Type=simple
+User=tecknowhow
+WorkingDirectory=/opt/tecknowhow/api
+# GLM_API_KEY (+ VITE_FIREBASE_* usados so no build)
+EnvironmentFile=/etc/tecknowhow/app.env
+Environment=NODE_ENV=production PORT=3003 HOSTNAME=127.0.0.1 TZ=Europe/Lisbon
+ExecStart=/usr/bin/node server.mjs
+Restart=on-failure
+RestartSec=3
+MemoryMax=200M
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
