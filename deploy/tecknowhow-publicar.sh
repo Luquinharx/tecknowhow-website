@@ -46,8 +46,8 @@ rm -rf /var/www/tecknowhow-antigo
 mv /var/www/tecknowhow-novo /var/www/tecknowhow
 
 # API
-[ -f /opt/tecknowhow/api/server.mjs ] && cp -a /opt/tecknowhow/api/server.mjs /opt/tecknowhow/api/server.mjs.antigo
-install -o tecknowhow -g tecknowhow -m 644 server-dist/server.mjs /opt/tecknowhow/api/server.mjs
+[ -f /opt/tecknowhow/api/server.cjs ] && cp -a /opt/tecknowhow/api/server.cjs /opt/tecknowhow/api/server.cjs.antigo
+install -o tecknowhow -g tecknowhow -m 644 server-dist/server.cjs /opt/tecknowhow/api/server.cjs
 install -m 644 deploy/tecknowhow.service /etc/systemd/system/tecknowhow.service
 # o proprio script de publicacao tambem se atualiza para a proxima vez
 install -m 755 deploy/tecknowhow-publicar.sh /usr/local/sbin/tecknowhow-publicar
@@ -65,9 +65,9 @@ done
 
 echo "!! a API nova nao respondeu; ultimas linhas:"
 journalctl -u tecknowhow -n 40 --no-pager || true
-if [ -f /opt/tecknowhow/api/server.mjs.antigo ]; then
+if [ -f /opt/tecknowhow/api/server.cjs.antigo ]; then
   echo "!! a repor a versao anterior da API"
-  cp -a /opt/tecknowhow/api/server.mjs.antigo /opt/tecknowhow/api/server.mjs
+  cp -a /opt/tecknowhow/api/server.cjs.antigo /opt/tecknowhow/api/server.cjs
   systemctl restart tecknowhow
 fi
 exit 1

@@ -1,6 +1,4 @@
 import { useState, useEffect } from 'react';
-import { collection, getDocs, query, orderBy } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -9,13 +7,12 @@ import { Button } from '@/components/ui/button';
 interface Lead {
   id: string;
   firstName: string;
-  lastName: string;
   phone: string;
   interest: string;
   service?: string;
   location?: string;
   timeline?: string;
-  createdAt: any;
+  createdAt: string;
 }
 
 const AdminPanel = () => {
@@ -24,32 +21,33 @@ const AdminPanel = () => {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Simple password check (In a real app, use proper auth)
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (password === 'Ak8cfiz!@*') { // Hardcoded password for simplicity as requested
-      setIsAuthenticated(true);
-      fetchLeads();
-    } else {
-      alert('Palavra-passe incorreta');
-    }
-  };
+  const [error, setError] = useState('');
 
-  const fetchLeads = async () => {
+  // A palavra-passe é verificada no servidor (ADMIN_PASSWORD na VM); aqui só fica em memória.
+  const fetchLeads = async (pass: string) => {
     setLoading(true);
+    setError('');
     try {
-      const q = query(collection(db, 'leads'), orderBy('createdAt', 'desc'));
-      const querySnapshot = await getDocs(q);
-      const leadsData: Lead[] = [];
-      querySnapshot.forEach((doc) => {
-        leadsData.push({ id: doc.id, ...doc.data() } as Lead);
-      });
-      setLeads(leadsData);
-    } catch (error) {
-      console.error("Error fetching leads: ", error);
+      const res = await fetch('/api/leads', { headers: { Authorization: `Bearer ${pass}` } });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(data.error || 'Não foi possível carregar os leads.');
+        return false;
+      }
+      setLeads(data.leads);
+      return true;
+    } catch (err) {
+      console.error('Error fetching leads: ', err);
+      setError('Sem ligação ao servidor.');
+      return false;
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (await fetchLeads(password)) setIsAuthenticated(true);
   };
 
   if (!isAuthenticated) {
@@ -67,7 +65,8 @@ const AdminPanel = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
-              <Button type="submit" className="w-full">Entrar</Button>
+              {error && <p className="text-sm text-red-500">{error}</p>}
+              <Button type="submit" className="w-full" disabled={loading}>{loading ? 'A entrar...' : 'Entrar'}</Button>
             </form>
           </CardContent>
         </Card>
@@ -113,7 +112,7 @@ const AdminPanel = () => {
                       )}
                     </TableCell>
                     <TableCell>
-                      {lead.createdAt?.toDate ? lead.createdAt.toDate().toLocaleString() : 'N/A'}
+                      {lead.createdAt ? new Date(lead.createdAt).toLocaleString('pt-PT') : 'N/A'}
                     </TableCell>
                   </TableRow>
                 ))

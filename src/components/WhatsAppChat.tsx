@@ -1,8 +1,7 @@
 import { useState, useRef, useEffect, useCallback, type ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { collection, query, where, getDocs, addDoc, serverTimestamp } from "firebase/firestore";
 import { logEvent } from "firebase/analytics";
-import { db, analytics } from "@/lib/firebase";
+import { analytics } from "@/lib/firebase";
 import { ArrowUp, ChevronDown, MessageCircle, RotateCcw, Phone, CheckCircle2, X, ClipboardList, Hammer, CalendarCheck } from "lucide-react";
 import teckaAvatar from "@/assets/tecka-avatar.jpg";
 
@@ -230,18 +229,20 @@ function LeadCard({ lead }: { lead: Lead }) {
 
 async function saveLead(lead: Lead) {
   try {
-    const snapshot = await getDocs(query(collection(db, "leads"), where("phone", "==", lead.telemovel)));
-    if (!snapshot.empty) return;
-    await addDoc(collection(db, "leads"), {
-      firstName: lead.nome,
-      phone: lead.telemovel,
-      interest: lead.resumo || lead.servico,
-      service: lead.servico,
-      location: lead.localizacao,
-      timeline: lead.prazo,
-      source: "chatbot",
-      createdAt: serverTimestamp(),
+    const res = await fetch("/api/leads", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        firstName: lead.nome,
+        phone: lead.telemovel,
+        interest: lead.resumo || lead.servico,
+        service: lead.servico,
+        location: lead.localizacao,
+        timeline: lead.prazo,
+        source: "chatbot",
+      }),
     });
+    if (!res.ok) console.error("Falha ao gravar lead", res.status);
   } catch (err) {
     console.error(err);
   }
