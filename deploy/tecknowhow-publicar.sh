@@ -30,7 +30,12 @@ echo "== npm ci"
 sudo -u tecknowhow -H npm ci --no-audit --no-fund --loglevel=error
 echo "== build"
 # VITE_FIREBASE_* entram no build do site; a chave GLM fica so no servidor
-set -a; . /etc/tecknowhow/app.env; set +a
+# (le so as linhas VITE_*; o ficheiro NAO e executado como bash: os valores podem ter $)
+while IFS= read -r linha || [ -n "$linha" ]; do
+  case "$linha" in
+    VITE_*=*) export "${linha%%=*}=${linha#*=}" ;;
+  esac
+done < /etc/tecknowhow/app.env
 sudo -u tecknowhow -H --preserve-env=VITE_FIREBASE_API_KEY,VITE_FIREBASE_AUTH_DOMAIN,VITE_FIREBASE_PROJECT_ID,VITE_FIREBASE_STORAGE_BUCKET,VITE_FIREBASE_MESSAGING_SENDER_ID,VITE_FIREBASE_APP_ID,VITE_FIREBASE_MEASUREMENT_ID \
   npm run build
 sudo -u tecknowhow -H npm run build:server

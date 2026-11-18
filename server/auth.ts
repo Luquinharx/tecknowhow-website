@@ -1,8 +1,8 @@
 // Login do painel de admin.
 //   POST /api/admin/login  { email, password } -> { token, expiresAt }
 // Credenciais só na VM (/etc/tecknowhow/app.env):
-//   ADMIN_EMAIL, ADMIN_PASSWORD_HASH (scrypt$<salt hex>$<hash hex>), ADMIN_SESSION_SECRET
-// Para gerar o hash: node -e "const c=require('crypto');const s=c.randomBytes(16);console.log('scrypt$'+s.toString('hex')+'$'+c.scryptSync(process.argv[1],s,64).toString('hex'))" 'palavra-passe'
+//   ADMIN_EMAIL, ADMIN_PASSWORD_HASH (scrypt:<salt hex>:<hash hex>), ADMIN_SESSION_SECRET
+// Para gerar o hash: node -e "const c=require('crypto');const s=c.randomBytes(16);console.log('scrypt:'+s.toString('hex')+':'+c.scryptSync(process.argv[1],s,64).toString('hex'))" 'palavra-passe'
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { createHmac, scryptSync, timingSafeEqual } from "node:crypto";
 import { clientIp, createRateLimiter, readBody, sendJson } from "./http-utils";
@@ -17,7 +17,8 @@ function sign(payload: string) {
 }
 
 function checkPassword(password: string) {
-  const [scheme, saltHex, hashHex] = (process.env.ADMIN_PASSWORD_HASH || "").split("$");
+  // formato scrypt:<salt>:<hash> (aceita também "$" como separador)
+  const [scheme, saltHex, hashHex] = (process.env.ADMIN_PASSWORD_HASH || "").split(/[:$]/);
   if (scheme !== "scrypt" || !saltHex || !hashHex) return false;
   const expected = Buffer.from(hashHex, "hex");
   const actual = scryptSync(password, Buffer.from(saltHex, "hex"), expected.length);
